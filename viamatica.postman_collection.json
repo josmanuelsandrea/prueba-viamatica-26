@@ -1,0 +1,1128 @@
+{
+  "info": {
+    "name": "Viamatica API",
+    "_postman_id": "viamatica-api-collection",
+    "description": "CRUD completo para todas las entidades del sistema de gestión de caja Viamatica.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login - Administrador",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin001\",\n  \"password\": \"Admin1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login - Gestor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"gestor001\",\n  \"password\": \"Gestor1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login - Cajero",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cajero001\",\n  \"password\": \"Cajero1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Recuperar contraseña",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@viamatica.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/recover-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "recover-password"]
+            }
+          }
+        },
+        {
+          "name": "Obtener menú por rol",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/menu",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "menu"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuarios",
+      "item": [
+        {
+          "name": "Listar usuarios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Listar usuarios por rol",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?rolId=3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [{ "key": "rolId", "value": "3" }]
+            }
+          }
+        },
+        {
+          "name": "Listar usuarios por estado",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users?statusId=PEN",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"],
+              "query": [{ "key": "statusId", "value": "PEN" }]
+            }
+          }
+        },
+        {
+          "name": "Obtener usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear usuario cajero",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"cajero002\",\n  \"email\": \"cajero2@viamatica.com\",\n  \"password\": \"Cajero1234\",\n  \"rolId\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Crear usuario gestor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"gestor002\",\n  \"email\": \"gestor2@viamatica.com\",\n  \"password\": \"Gestor1234\",\n  \"rolId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cajero2_actualizado@viamatica.com\",\n  \"password\": \"NuevaClave1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "4"]
+            }
+          }
+        },
+        {
+          "name": "Cambiar estado de usuario",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": \"INA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/4/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "4", "status"]
+            }
+          }
+        },
+        {
+          "name": "Aprobar usuario (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/4/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "4", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar usuario",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/4",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "4"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clientes",
+      "item": [
+        {
+          "name": "Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients"]
+            }
+          }
+        },
+        {
+          "name": "Obtener cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "1"]
+            }
+          }
+        },
+        {
+          "name": "Buscar cliente por identificación",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/by-identification/0912345678",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "by-identification", "0912345678"]
+            }
+          }
+        },
+        {
+          "name": "Crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan\",\n  \"lastname\": \"Pérez\",\n  \"identification\": \"0912345678\",\n  \"email\": \"juan.perez@mail.com\",\n  \"phonenumber\": \"0987654321\",\n  \"address\": \"Av. Principal 123 y Calle Secundaria\",\n  \"referenceaddress\": \"Frente al parque central del sector norte\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Juan Carlos\",\n  \"lastname\": \"Pérez López\",\n  \"email\": \"jc.perez@mail.com\",\n  \"phonenumber\": \"0991234567\",\n  \"address\": \"Av. Principal 456 y Calle Nueva\",\n  \"referenceaddress\": \"Edificio azul junto al supermercado del centro\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "1"]
+            }
+          }
+        },
+        {
+          "name": "Cambiar estado de cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "false"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar cliente",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/clients/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clients", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cajas",
+      "item": [
+        {
+          "name": "Listar cajas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/cash",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash"]
+            }
+          }
+        },
+        {
+          "name": "Obtener caja por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/cash/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear caja",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cashDescription\": \"Caja 1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cash",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar caja",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cashDescription\": \"Caja Principal\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cash/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash", "1"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar caja",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/cash/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash", "1"]
+            }
+          }
+        },
+        {
+          "name": "Asignar cajero a caja (gestor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 3\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cash/1/assign-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash", "1", "assign-user"]
+            }
+          }
+        },
+        {
+          "name": "Activar cajero en caja (gestor)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/cash/1/activate-user/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash", "1", "activate-user", "3"]
+            }
+          }
+        },
+        {
+          "name": "Desactivar cajero en caja (gestor)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/cash/1/deactivate-user/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash", "1", "deactivate-user", "3"]
+            }
+          }
+        },
+        {
+          "name": "Remover cajero de caja (gestor)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/cash/1/remove-user/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cash", "1", "remove-user", "3"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Turnos",
+      "item": [
+        {
+          "name": "Listar turnos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/turns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "turns"]
+            }
+          }
+        },
+        {
+          "name": "Listar turnos por caja",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/turns?cashId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "turns"],
+              "query": [{ "key": "cashId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Obtener turno por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/turns/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "turns", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear turno (gestor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cashId\": 1,\n  \"clientId\": 1,\n  \"attentionTypeId\": \"AC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/turns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "turns"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Atenciones",
+      "item": [
+        {
+          "name": "Listar atenciones",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/attentions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attentions"]
+            }
+          }
+        },
+        {
+          "name": "Listar atenciones por caja",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/attentions?cashId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attentions"],
+              "query": [{ "key": "cashId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Resumen diario de atenciones",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/attentions/daily-summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attentions", "daily-summary"]
+            }
+          }
+        },
+        {
+          "name": "Crear atención",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"turnId\": 1,\n  \"clientId\": 1,\n  \"attentionTypeId\": \"AC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attentions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attentions"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar estado de atención",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/attentions/1/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "attentions", "1", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Servicios",
+      "item": [
+        {
+          "name": "Listar servicios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services"]
+            }
+          }
+        },
+        {
+          "name": "Listar servicios (incluir inactivos)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/services?includeInactive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services"],
+              "query": [{ "key": "includeInactive", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "Obtener servicio por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear servicio",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceName\": \"Plan Ultra\",\n  \"serviceDescription\": \"Internet residencial 500 Mbps fibra óptica\",\n  \"speedMbps\": 500,\n  \"price\": 149.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar servicio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceName\": \"Plan Ultra Plus\",\n  \"serviceDescription\": \"Internet residencial 500 Mbps fibra óptica premium\",\n  \"speedMbps\": 500,\n  \"price\": 159.99\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/services/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "6"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar servicio",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/services/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services", "6"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dispositivos (Equipos)",
+      "item": [
+        {
+          "name": "Listar dispositivos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices"]
+            }
+          }
+        },
+        {
+          "name": "Listar dispositivos por servicio",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices?serviceId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices"],
+              "query": [{ "key": "serviceId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Obtener dispositivo por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear dispositivo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceName\": \"Router Ubiquiti EdgeRouter\",\n  \"serviceServiceId\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/devices",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar dispositivo",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceName\": \"Router Ubiquiti EdgeRouter X\",\n  \"serviceServiceId\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices", "6"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar dispositivo",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/6",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices", "6"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contratos",
+      "item": [
+        {
+          "name": "Listar contratos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts"]
+            }
+          }
+        },
+        {
+          "name": "Listar contratos por cliente",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts?clientId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts"],
+              "query": [{ "key": "clientId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Listar contratos por estado",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts?status=VIG",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts"],
+              "query": [{ "key": "status", "value": "VIG" }]
+            }
+          }
+        },
+        {
+          "name": "Obtener contrato por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear contrato",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"serviceId\": 2,\n  \"methodPaymentId\": 1,\n  \"attentionId\": 1,\n  \"startDate\": \"2026-04-09T00:00:00\",\n  \"endDate\": \"2027-04-09T00:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts"]
+            }
+          }
+        },
+        {
+          "name": "Cambiar servicio contratado",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newServiceId\": 3,\n  \"newMethodPaymentId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/1/change-service",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "1", "change-service"]
+            }
+          }
+        },
+        {
+          "name": "Cambiar forma de pago",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newMethodPaymentId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/1/change-payment-method",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "1", "change-payment-method"]
+            }
+          }
+        },
+        {
+          "name": "Cancelar contrato",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/contracts/1/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "contracts", "1", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pagos",
+      "item": [
+        {
+          "name": "Listar pagos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"]
+            }
+          }
+        },
+        {
+          "name": "Listar pagos por contrato",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments?contractId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"],
+              "query": [{ "key": "contractId", "value": "1" }]
+            }
+          }
+        },
+        {
+          "name": "Obtener pago por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Registrar pago",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"contractId\": 1,\n  \"methodPaymentId\": 1,\n  \"amount\": 29.99,\n  \"attentionId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "payments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kiosk (público)",
+      "item": [
+        {
+          "name": "Verificar cliente por identificación",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/kiosk/check/0912345678",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "kiosk", "check", "0912345678"]
+            }
+          }
+        },
+        {
+          "name": "Registrar cliente (kiosk)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"María\",\n  \"lastname\": \"García\",\n  \"identification\": \"0923456789\",\n  \"email\": \"maria.garcia@mail.com\",\n  \"phonenumber\": \"0976543210\",\n  \"address\": \"Calle Los Rosales 789 y Av. de los Cerezos\",\n  \"referenceaddress\": \"Casa esquinera con puerta verde frente al colegio\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/kiosk/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "kiosk", "register"]
+            }
+          }
+        },
+        {
+          "name": "Solicitar turno (kiosk)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"attentionTypeId\": \"AC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/kiosk/request-turn",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "kiosk", "request-turn"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catálogos",
+      "item": [
+        {
+          "name": "Tipos de atención",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogs/attention-types",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalogs", "attention-types"]
+            }
+          }
+        },
+        {
+          "name": "Métodos de pago",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogs/method-payments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalogs", "method-payments"]
+            }
+          }
+        },
+        {
+          "name": "Roles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogs/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalogs", "roles"]
+            }
+          }
+        },
+        {
+          "name": "Estados de contrato",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/catalogs/status-contracts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "catalogs", "status-contracts"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
