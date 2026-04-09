@@ -1,0 +1,71 @@
+<app-navbar />
+
+<div class="p-4">
+  <h2 class="mb-4">Dashboard</h2>
+
+  <div class="grid mb-4">
+    <div class="col-12 md:col-3">
+      <p-card styleClass="text-center">
+        <div class="text-4xl font-bold text-primary">{{ summary()?.total ?? 0 }}</div>
+        <div class="text-color-secondary mt-1">Atenciones hoy</div>
+      </p-card>
+    </div>
+    <div class="col-12 md:col-3">
+      <p-card styleClass="text-center">
+        <div class="text-4xl font-bold text-green-500">{{ activeUsers() }}</div>
+        <div class="text-color-secondary mt-1">Usuarios activos</div>
+      </p-card>
+    </div>
+    <div class="col-12 md:col-3">
+      <p-card styleClass="text-center">
+        <div class="text-4xl font-bold text-blue-500">{{ totalUsers() }}</div>
+        <div class="text-color-secondary mt-1">Total usuarios</div>
+      </p-card>
+    </div>
+    <div class="col-12 md:col-3">
+      <p-card styleClass="text-center">
+        <div class="text-4xl font-bold text-orange-500">{{ totalCashes() }}</div>
+        <div class="text-color-secondary mt-1">Cajas registradas</div>
+      </p-card>
+    </div>
+  </div>
+
+  @if (pendingUsers().length > 0) {
+    <p-card header="Usuarios pendientes de aprobación" styleClass="mb-4">
+      <p-table [value]="pendingUsers()" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Fecha</th></tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-u>
+          <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.rolName }}</td>
+            <td>{{ u.createdAt | date:'dd/MM/yyyy' }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+  }
+
+  <p-card header="Todos los usuarios">
+    <p-table [value]="users()" [loading]="loading()" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th></tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-u>
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ u.rolName }}</td>
+          <td>
+            <p-tag
+              [value]="u.statusDescription"
+              [severity]="u.statusId === 'ACT' ? 'success' : u.statusId === 'PEN' ? 'warn' : 'danger'"
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

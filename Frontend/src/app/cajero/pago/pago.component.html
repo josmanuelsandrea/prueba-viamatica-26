@@ -1,0 +1,59 @@
+<app-navbar />
+<p-toast />
+
+<div class="p-4">
+  <div class="flex align-items-center justify-content-between mb-4">
+    <h2 class="m-0">Pagos</h2>
+    <p-button label="Registrar pago" icon="pi pi-plus" (onClick)="showDialog.set(true)" />
+  </div>
+
+  <p-table [value]="payments()" [loading]="loading()" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>#</th><th>Cliente</th><th>Servicio</th><th>Monto</th><th>Fecha</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-p>
+      <tr>
+        <td>{{ p.paymentId }}</td>
+        <td>{{ p.clientName }}</td>
+        <td>{{ p.serviceName }}</td>
+        <td>$ {{ p.amount | number:'1.2-2' }}</td>
+        <td>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="5" class="text-center py-4">No hay pagos registrados.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [visible]="showDialog()" header="Registrar pago" [modal]="true" [style]="{ width: '400px' }" (onHide)="showDialog.set(false)">
+  <form [formGroup]="form" class="flex flex-column gap-3 pt-2">
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Contrato *</label>
+      <p-select
+        formControlName="contractId"
+        [options]="contracts()"
+        optionLabel="clientName"
+        optionValue="contractId"
+        [filter]="true"
+        placeholder="Buscar contrato..."
+        styleClass="w-full"
+        appendTo="body"
+      >
+        <ng-template pTemplate="item" let-c>
+          <div>{{ c.clientName }} — {{ c.serviceName }}</div>
+        </ng-template>
+      </p-select>
+    </div>
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Monto *</label>
+      <input pInputText type="number" formControlName="amount" placeholder="0.00" class="w-full" />
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="showDialog.set(false)" />
+    <p-button label="Registrar" icon="pi pi-check" [loading]="saving()" [disabled]="form.invalid" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

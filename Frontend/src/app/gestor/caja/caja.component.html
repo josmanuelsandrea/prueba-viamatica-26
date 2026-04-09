@@ -1,0 +1,115 @@
+<app-navbar />
+<p-toast />
+<p-confirmDialog />
+
+<div class="p-4">
+  <h2 class="mb-4">Asignación de cajeros a cajas</h2>
+
+  <p-table
+    [value]="cashes()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    styleClass="p-datatable-sm p-datatable-striped"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Caja</th>
+        <th>Cajeros asignados</th>
+        <th style="width: 120px">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-cash>
+      <tr>
+        <td>
+          <span class="font-bold">{{ cash.cashDescription }}</span>
+          <p-tag
+            [value]="cash.active ? 'Activa' : 'Inactiva'"
+            [severity]="cash.active ? 'success' : 'secondary'"
+            styleClass="ml-2"
+          />
+        </td>
+        <td>
+          @if (cash.assignedUsers.length === 0) {
+            <span class="text-color-secondary">Sin cajeros asignados</span>
+          } @else {
+            <div class="flex flex-wrap gap-2">
+              @for (u of cash.assignedUsers; track u.userId) {
+                <div class="flex align-items-center gap-1 surface-ground border-round px-2 py-1">
+                  <i class="pi pi-user text-sm"></i>
+                  <span class="text-sm font-medium">{{ u.username }}</span>
+                  <p-tag
+                    [value]="u.isActive ? 'Activo' : 'Inactivo'"
+                    [severity]="u.isActive ? 'success' : 'secondary'"
+                    styleClass="text-xs"
+                  />
+                  <p-button
+                    [icon]="u.isActive ? 'pi pi-pause' : 'pi pi-play'"
+                    [pTooltip]="u.isActive ? 'Desactivar en caja' : 'Activar en caja'"
+                    size="small"
+                    [text]="true"
+                    [severity]="u.isActive ? 'warn' : 'success'"
+                    (onClick)="toggleActive(cash, u.userId, u.isActive)"
+                  />
+                  <p-button
+                    icon="pi pi-times"
+                    pTooltip="Remover de caja"
+                    size="small"
+                    [text]="true"
+                    severity="danger"
+                    (onClick)="removeUser(cash, u.userId, u.username)"
+                  />
+                </div>
+              }
+            </div>
+          }
+          @if (cash.assignedUsers.length >= 2) {
+            <small class="text-orange-500 block mt-1">
+              <i class="pi pi-exclamation-triangle mr-1"></i>Máximo de 2 cajeros alcanzado
+            </small>
+          }
+        </td>
+        <td>
+          <p-button
+            icon="pi pi-user-plus"
+            label="Asignar"
+            size="small"
+            [disabled]="cash.assignedUsers.length >= 2 || getAvailableCajeros(cash).length === 0"
+            (onClick)="openAssign(cash)"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="3" class="text-center py-4">No hay cajas registradas.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Dialog asignar cajero -->
+<p-dialog
+  [visible]="showAssignDialog()"
+  header="Asignar cajero a {{ selectedCash()?.cashDescription }}"
+  [modal]="true"
+  [style]="{ width: '380px' }"
+  (onHide)="showAssignDialog.set(false)"
+>
+  <form [formGroup]="assignForm" class="flex flex-column gap-3 pt-2">
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Cajero *</label>
+      <p-select
+        formControlName="userId"
+        [options]="getAvailableCajeros(selectedCash())"
+        optionLabel="username"
+        optionValue="userId"
+        placeholder="Seleccionar cajero"
+        styleClass="w-full"
+        appendTo="body"
+      />
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="showAssignDialog.set(false)" />
+    <p-button label="Asignar" icon="pi pi-check" [loading]="saving()" [disabled]="assignForm.invalid" (onClick)="assign()" />
+  </ng-template>
+</p-dialog>

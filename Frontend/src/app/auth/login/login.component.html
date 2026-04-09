@@ -1,0 +1,53 @@
+<p-toast />
+<div class="flex align-items-center justify-content-center min-h-screen surface-ground">
+  <div class="w-full" style="max-width: 420px">
+    <p-card>
+      <ng-template pTemplate="header">
+        <div class="text-center pt-4 pb-2">
+          <h2 class="text-3xl font-bold text-primary m-0">Viamatica</h2>
+          <p class="text-color-secondary mt-1">Sistema de Gestión de Cajas</p>
+        </div>
+      </ng-template>
+
+      <form [formGroup]="form" (ngSubmit)="login()" class="flex flex-column gap-3">
+        <div class="flex flex-column gap-1">
+          <label for="username" class="font-medium">Usuario</label>
+          <input
+            pInputText
+            id="username"
+            formControlName="username"
+            placeholder="Ingrese su usuario"
+            class="w-full"
+          />
+        </div>
+
+        <div class="flex flex-column gap-1">
+          <label for="password" class="font-medium">Contraseña</label>
+          <input
+            pInputText
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="Ingrese su contraseña"
+            class="w-full"
+          />
+        </div>
+
+        <p-button
+          type="submit"
+          label="Ingresar"
+          icon="pi pi-sign-in"
+          [loading]="loading()"
+          [disabled]="form.invalid"
+          styleClass="w-full"
+        />
+
+        <div class="text-center">
+          <a routerLink="/auth/recover-password" class="text-primary cursor-pointer text-sm">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+      </form>
+    </p-card>
+  </div>
+</div>

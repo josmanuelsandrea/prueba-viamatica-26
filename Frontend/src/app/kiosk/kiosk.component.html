@@ -1,0 +1,236 @@
+<p-toast position="top-center" />
+
+<div class="kiosk-wrapper flex align-items-center justify-content-center" style="min-height: 100vh; background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%)">
+
+  <!-- PASO 1: IDENTIFICACION -->
+  @if (step() === 'identify') {
+    <div class="kiosk-card flex flex-column align-items-center gap-4" style="width: 100%; max-width: 420px; padding: 2rem">
+
+      <div class="text-center text-white">
+        <i class="pi pi-building" style="font-size: 3rem; opacity: 0.9"></i>
+        <h1 class="text-3xl font-bold mt-2 mb-0">Viamatica</h1>
+        <p style="opacity: 0.8" class="mt-1">Sistema de atención al cliente</p>
+      </div>
+
+      <div class="w-full surface-card border-round-2xl p-4 shadow-4">
+        <p class="text-center font-medium text-color-secondary mb-3">Ingrese su número de cédula o RUC</p>
+
+        <div class="text-center surface-ground border-round-xl p-3 mb-4" style="min-height: 72px; display:flex; align-items:center; justify-content:center">
+          @if (idInput().length > 0) {
+            <span style="font-size: 2.5rem; font-family: monospace; letter-spacing: 0.3rem; font-weight: 700">{{ idInput() }}</span>
+          } @else {
+            <span style="font-size: 1.5rem; color: #aaa; letter-spacing: 0.3rem">_ _ _ _ _ _ _ _ _ _</span>
+          }
+        </div>
+
+        <div class="grid" style="gap: 0.6rem; margin: 0">
+          @for (key of numpadKeys; track key) {
+            <div class="col-4" style="padding: 0.3rem">
+              <button
+                (click)="pressKey(key)"
+                class="w-full border-round-xl font-bold border-none cursor-pointer"
+                [style]="key === 'C'
+                  ? 'background:#ffebee; color:#c62828; min-height:70px; font-size:1.1rem; touch-action:manipulation'
+                  : key === '←'
+                  ? 'background:#fff3e0; color:#e65100; min-height:70px; font-size:1.5rem; touch-action:manipulation'
+                  : 'background:#f5f5f5; color:#212121; min-height:70px; font-size:1.8rem; touch-action:manipulation'"
+              >
+                @if (key === '←') { <i class="pi pi-delete-left"></i> }
+                @else { {{ key }} }
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="mt-3">
+          <p-button
+            label="Continuar"
+            icon="pi pi-arrow-right"
+            iconPos="right"
+            [loading]="searching()"
+            [disabled]="idInput().length < 10"
+            styleClass="w-full"
+            size="large"
+            (onClick)="checkIdentification()"
+          />
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- PASO 2: REGISTRO (cliente nuevo) -->
+  @if (step() === 'register') {
+    <div class="surface-card border-round-2xl shadow-4 p-4" style="width: 100%; max-width: 520px; margin: 1rem">
+      <div class="flex align-items-center gap-2 mb-4">
+        <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary" (onClick)="restart()" />
+        <div>
+          <h2 class="m-0">Nuevo cliente</h2>
+          <small class="text-color-secondary">Cédula: <strong>{{ idInput() }}</strong></small>
+        </div>
+      </div>
+
+      <form [formGroup]="registerForm" class="grid">
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Nombre <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="name" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Apellido <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="lastname" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Teléfono <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="phone" placeholder="09XXXXXXXX" class="w-full p-inputtext-lg" />
+          @if (registerForm.controls.phone.invalid && registerForm.controls.phone.touched) {
+            <small class="text-red-500">Formato: 09XXXXXXXX</small>
+          }
+        </div>
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Correo <span class="text-red-500">*</span></label>
+          <input pInputText type="email" formControlName="email" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-12 flex flex-column gap-2">
+          <label class="font-medium">Dirección <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="address" placeholder="Mínimo 20 caracteres" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-12 flex flex-column gap-2">
+          <label class="font-medium">Referencia <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="referenceAddress" placeholder="Mínimo 20 caracteres" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-12 mt-2">
+          <p-button
+            label="Registrarme y continuar"
+            icon="pi pi-user-plus"
+            size="large"
+            styleClass="w-full"
+            [loading]="saving()"
+            [disabled]="registerForm.invalid"
+            (onClick)="register()"
+          />
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- PASO 3: CLIENTE ENCONTRADO -->
+  @if (step() === 'found') {
+    <div class="surface-card border-round-2xl shadow-4 p-5" style="width: 100%; max-width: 460px; margin: 1rem">
+      <div class="text-center mb-4">
+        <p-avatar
+          [label]="clientInitials()"
+          size="xlarge"
+          shape="circle"
+          styleClass="text-3xl font-bold mb-3"
+          style="background:#1565c0; color:white; display:inline-flex"
+        />
+        <h2 class="mt-3 mb-1">{{ currentClient()?.name }} {{ currentClient()?.lastname }}</h2>
+        <p class="text-color-secondary m-0">
+          <i class="pi pi-id-card mr-1"></i>{{ currentClient()?.identification }}
+        </p>
+        @if (currentClient()?.isNew) {
+          <p-tag value="Cuenta nueva creada" severity="success" styleClass="mt-2" />
+        } @else {
+          <p-tag value="Cliente registrado" severity="info" styleClass="mt-2" />
+        }
+      </div>
+
+      <p-divider />
+
+      <p class="text-center text-color-secondary mb-4">¿Desea solicitar un turno de atención?</p>
+
+      <div class="flex flex-column gap-3">
+        <p-button
+          label="Solicitar turno"
+          icon="pi pi-ticket"
+          size="large"
+          styleClass="w-full"
+          (onClick)="goSelectService()"
+        />
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          [text]="true"
+          size="large"
+          styleClass="w-full"
+          (onClick)="restart()"
+        />
+      </div>
+    </div>
+  }
+
+  <!-- PASO 4: SELECCIONAR TIPO DE ATENCION -->
+  @if (step() === 'select-service') {
+    <div class="surface-card border-round-2xl shadow-4 p-5" style="width: 100%; max-width: 500px; margin: 1rem">
+      <div class="flex align-items-center gap-2 mb-4">
+        <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary" (onClick)="step.set('found')" />
+        <h2 class="m-0">¿Qué necesita hoy?</h2>
+      </div>
+
+      <div class="flex flex-column gap-3">
+        @for (type of attentionTypes(); track type.id) {
+          <button
+            (click)="selectService(type.id)"
+            [disabled]="requesting()"
+            class="w-full border-round-xl p-4 text-left cursor-pointer border-2 border-transparent transition-all transition-duration-150"
+            style="background:#f8f9fa; border:none; touch-action:manipulation"
+            [style.opacity]="requesting() ? '0.6' : '1'"
+          >
+            <div class="flex align-items-center gap-3">
+              <div class="border-circle flex align-items-center justify-content-center" style="width:48px; height:48px; background:#e3f2fd; flex-shrink:0">
+                <i class="pi pi-ticket text-primary text-xl"></i>
+              </div>
+              <div>
+                <div class="font-bold text-lg">{{ type.description }}</div>
+                <small class="text-color-secondary">Código: {{ type.prefix }}XXXX</small>
+              </div>
+              <i class="pi pi-chevron-right ml-auto text-color-secondary"></i>
+            </div>
+          </button>
+        }
+      </div>
+
+      @if (requesting()) {
+        <div class="text-center mt-4">
+          <i class="pi pi-spin pi-spinner text-primary" style="font-size:2rem"></i>
+          <p class="text-color-secondary">Generando su turno...</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- PASO 5: TURNO EMITIDO -->
+  @if (step() === 'turn-issued') {
+    <div class="surface-card border-round-2xl shadow-4 text-center p-5" style="width: 100%; max-width: 420px; margin: 1rem">
+      <i class="pi pi-check-circle text-green-500 mb-3" style="font-size: 4rem"></i>
+      <h2 class="text-xl text-color-secondary mb-2">Su número de turno es</h2>
+
+      <div class="border-round-2xl p-4 mb-4" style="background: linear-gradient(135deg, #1565c0, #0d47a1)">
+        <span class="text-white font-bold" style="font-size: 4.5rem; letter-spacing: 0.5rem; font-family: monospace">
+          {{ issuedTurn()?.turnNumber }}
+        </span>
+      </div>
+
+      <div class="surface-ground border-round-xl p-3 mb-4 text-left">
+        <div class="flex justify-content-between mb-2">
+          <span class="text-color-secondary">Tipo de atención:</span>
+          <span class="font-medium">{{ issuedTurn()?.attentionTypeDescription }}</span>
+        </div>
+        <div class="flex justify-content-between">
+          <span class="text-color-secondary">Módulo asignado:</span>
+          <span class="font-medium">{{ issuedTurn()?.cashDescription }}</span>
+        </div>
+      </div>
+
+      <p class="text-color-secondary mb-4">Por favor espere a ser llamado en el módulo indicado.</p>
+
+      <p-button
+        label="Finalizar"
+        icon="pi pi-home"
+        size="large"
+        styleClass="w-full"
+        (onClick)="restart()"
+      />
+    </div>
+  }
+
+</div>

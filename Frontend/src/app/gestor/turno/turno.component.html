@@ -1,0 +1,79 @@
+<app-navbar />
+<p-toast />
+
+<div class="p-4">
+  <h2 class="mb-4">Asignación de Turnos</h2>
+
+  <div class="grid">
+    <div class="col-12 md:col-4">
+      <p-card header="Nuevo turno">
+        <form [formGroup]="form" (ngSubmit)="create()" class="flex flex-column gap-3">
+          <div class="flex flex-column gap-1">
+            <label class="font-medium">Caja <span class="text-red-500">*</span></label>
+            <p-select
+              formControlName="cashId"
+              [options]="cashes()"
+              optionLabel="cashDescription"
+              optionValue="cashId"
+              placeholder="Seleccione una caja"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="flex flex-column gap-1">
+            <label class="font-medium">Tipo de atención <span class="text-red-500">*</span></label>
+            <p-select
+              formControlName="attentionTypeId"
+              [options]="attentionTypes()"
+              optionLabel="description"
+              optionValue="id"
+              placeholder="Seleccione tipo"
+              styleClass="w-full"
+            />
+          </div>
+
+          <p-button
+            type="submit"
+            label="Asignar turno"
+            icon="pi pi-ticket"
+            [loading]="creating()"
+            [disabled]="form.invalid"
+            styleClass="w-full"
+          />
+        </form>
+      </p-card>
+    </div>
+
+    <div class="col-12 md:col-8">
+      <p-card header="Turnos del día">
+        <p-table
+          [value]="turns()"
+          [loading]="loading()"
+          [paginator]="true"
+          [rows]="10"
+          styleClass="p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Turno</th>
+              <th>Caja</th>
+              <th>Gestor</th>
+              <th>Fecha</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-turn>
+            <tr>
+              <td><p-tag [value]="turn.description" severity="info" /></td>
+              <td>{{ turn.cashDescription }}</td>
+              <td>{{ turn.userGestorName }}</td>
+              <td>{{ turn.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="emptymessage">
+            <tr><td colspan="4" class="text-center py-4">No hay turnos registrados hoy.</td></tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
+  </div>
+</div>

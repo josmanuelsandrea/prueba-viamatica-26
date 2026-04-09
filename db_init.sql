@@ -267,7 +267,24 @@ INSERT INTO methodpayment (description) VALUES
     ('Transferencia bancaria'),
     ('Débito automático');
 
--- Usuario administrador inicial
--- password = 'Admin1234' encriptado (se reemplaza por el valor AES real al iniciar la app)
+-- Usuarios semilla (passwords encriptados por la app al arrancar)
 INSERT INTO "user" (username, email, password, rol_rolid, userstatus_statusid) VALUES
-    ('admin001', 'admin@viamatica.com', 'PENDING_ENCRYPTION', 1, 'ACT');
+    ('admin001',  'admin@viamatica.com',  'PENDING_ENCRYPTION', 1, 'ACT'),
+    ('gestor001', 'gestor@viamatica.com', 'PENDING_ENCRYPTION', 2, 'ACT'),
+    ('cajero001', 'cajero@viamatica.com', 'PENDING_ENCRYPTION', 3, 'ACT');
+
+-- Servicios de internet
+INSERT INTO service (servicename, servicedescription, speed_mbps, price) VALUES
+    ('Plan Básico',      'Internet residencial 10 Mbps',    10,  19.99),
+    ('Plan Estándar',    'Internet residencial 30 Mbps',    30,  29.99),
+    ('Plan Avanzado',    'Internet residencial 50 Mbps',    50,  39.99),
+    ('Plan Premium',     'Internet residencial 100 Mbps',  100,  59.99),
+    ('Plan Empresarial', 'Internet empresarial 200 Mbps',  200,  99.99);
+
+-- Dispositivos asociados a cada plan
+INSERT INTO device (devicename, service_serviceid) VALUES
+    ('Router TP-Link N300',   1),
+    ('Router TP-Link N450',   2),
+    ('Router ASUS AC750',     3),
+    ('Router ASUS AC1200',    4),
+    ('Router MikroTik hEX',   5);

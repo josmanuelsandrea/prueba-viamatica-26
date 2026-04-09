@@ -1,0 +1,110 @@
+<p-toast />
+<p-confirmDialog />
+
+<div class="p-4">
+  <div class="flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0">Cajas registradoras</h2>
+    <p-button label="Nueva caja" icon="pi pi-plus" (onClick)="openCreate()" />
+  </div>
+
+  <p-table
+    [value]="cajas()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    stripedRows
+    responsiveLayout="scroll"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Descripción</th>
+        <th>Estado</th>
+        <th>Cajeros asignados</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-caja>
+      <tr>
+        <td>{{ caja.cashId }}</td>
+        <td>{{ caja.cashDescription }}</td>
+        <td>
+          <p-tag
+            [value]="caja.active ? 'Activa' : 'Inactiva'"
+            [severity]="caja.active ? 'success' : 'danger'"
+          />
+        </td>
+        <td>
+          @if (caja.assignedUsers?.length) {
+            <div class="flex flex-column gap-1">
+              @for (u of caja.assignedUsers; track u.userId) {
+                <span>
+                  {{ u.username }}
+                  @if (u.isActive) {
+                    <p-tag value="activo" severity="success" styleClass="ml-1" />
+                  }
+                </span>
+              }
+            </div>
+          } @else {
+            <span class="text-color-secondary">Sin cajeros</span>
+          }
+        </td>
+        <td>
+          <div class="flex gap-2">
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              severity="info"
+              pTooltip="Editar"
+              (onClick)="openEdit(caja)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              [text]="true"
+              severity="danger"
+              pTooltip="Eliminar"
+              (onClick)="confirmDelete(caja)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="empty">
+      <tr>
+        <td colspan="5" class="text-center p-4">No hay cajas registradas.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [visible]="showDialog()"
+  [header]="editingId() != null ? 'Editar caja' : 'Nueva caja'"
+  [modal]="true"
+  [style]="{ width: '380px' }"
+  (onHide)="showDialog.set(false)"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-column gap-3 pt-2">
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Descripción <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="cashDescription" placeholder="Ej: Caja principal planta baja" class="w-full" />
+      @if (form.controls.cashDescription.invalid && form.controls.cashDescription.touched) {
+        <small class="text-red-500">Mínimo 3 caracteres requeridos.</small>
+      }
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="showDialog.set(false)" />
+    <p-button
+      label="Guardar"
+      icon="pi pi-save"
+      [loading]="saving()"
+      [disabled]="form.invalid"
+      (onClick)="submit()"
+    />
+  </ng-template>
+</p-dialog>

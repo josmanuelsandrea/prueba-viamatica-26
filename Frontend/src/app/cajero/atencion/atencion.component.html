@@ -1,0 +1,76 @@
+<app-navbar />
+<p-toast />
+<p-confirmDialog />
+
+<div class="p-4">
+  <div class="flex align-items-center justify-content-between mb-3">
+    <div>
+      <h2 class="m-0">Cola de atenciones</h2>
+      @if (activeCash()) {
+        <small class="text-color-secondary">
+          Caja activa: <strong>{{ activeCash()!.cashDescription }}</strong>
+          &nbsp;&mdash;&nbsp;{{ pendingCount }} pendiente(s)
+        </small>
+      } @else {
+        <small class="text-orange-500">No estás asignado a ninguna caja activa.</small>
+      }
+    </div>
+    <p-button icon="pi pi-refresh" label="Actualizar" severity="secondary" [loading]="loading()" (onClick)="loadActiveCashAndAttentions()" />
+  </div>
+
+  @if (!activeCash() && !loading()) {
+    <p-card>
+      <div class="text-center p-4">
+        <i class="pi pi-exclamation-triangle text-4xl text-orange-400 mb-3 block"></i>
+        <p class="text-color-secondary">
+          No tienes una caja activa asignada. Contacta a tu gestor para que te active en una caja.
+        </p>
+      </div>
+    </p-card>
+  } @else {
+    <p-table
+      [value]="attentions()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="10"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Turno</th>
+          <th>Cliente</th>
+          <th>Cédula</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Hora</th>
+          <th>Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-item>
+        <tr>
+          <td><p-tag [value]="item.turnDescription" severity="info" /></td>
+          <td>{{ item.clientName || '—' }}</td>
+          <td>{{ item.clientIdentification || '—' }}</td>
+          <td>{{ item.attentionTypeDescription }}</td>
+          <td><p-tag [value]="item.statusDescription" [severity]="getStatusSeverity(item.statusId)" /></td>
+          <td>{{ item.createdAt | date:'HH:mm' }}</td>
+          <td>
+            @if (item.statusId === 1) {
+              <div class="flex gap-2">
+                <p-button icon="pi pi-check" label="Atendido" size="small" severity="success" (onClick)="markAttended(item)" />
+                <p-button icon="pi pi-times" size="small" [text]="true" severity="danger" pTooltip="Cancelar" (onClick)="markCancelled(item)" />
+              </div>
+            }
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-4 text-color-secondary">No hay atenciones registradas para tu caja hoy.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</div>

@@ -1,0 +1,244 @@
+<app-navbar />
+<p-toast />
+<p-confirmDialog />
+
+<!-- VISTA LOOKUP: Teclado numerico para buscar por cedula -->
+@if (view() === 'lookup') {
+  <div class="flex align-items-center justify-content-center" style="min-height: calc(100vh - 64px); background: var(--surface-ground)">
+    <div class="flex flex-column align-items-center gap-4" style="width: 100%; max-width: 400px; padding: 1.5rem">
+
+      <div class="text-center">
+        <i class="pi pi-id-card text-primary" style="font-size: 2.5rem"></i>
+        <h2 class="mt-2 mb-0">Buscar cliente</h2>
+        <p class="text-color-secondary mt-1">Ingrese la cédula o RUC</p>
+      </div>
+
+      <!-- Display de identificacion -->
+      <div class="w-full surface-card border-round-xl p-4 text-center shadow-2">
+        <span class="text-5xl font-bold tracking-wide" style="letter-spacing: 0.25rem; font-family: monospace">
+          @if (searchInput().length > 0) {
+            {{ searchInput() }}
+          } @else {
+            <span class="text-color-secondary">___________</span>
+          }
+        </span>
+        <p class="text-color-secondary mt-2 mb-0 text-sm">{{ searchInput().length }}/13 dígitos</p>
+      </div>
+
+      <!-- Teclado numerico -->
+      <div class="grid w-full" style="gap: 0.75rem">
+        @for (key of numpadKeys; track key) {
+          <div class="col-4">
+            <button
+              class="w-full border-round-xl font-bold cursor-pointer transition-colors transition-duration-150"
+              [class]="key === 'C' ? 'bg-red-100 text-red-600 border-none p-4 text-xl hover:bg-red-200 active:bg-red-300' :
+                        key === '←' ? 'bg-orange-100 text-orange-600 border-none p-4 text-xl hover:bg-orange-200 active:bg-orange-300' :
+                        'surface-card border-none p-4 text-2xl hover:surface-hover active:surface-border shadow-1'"
+              style="min-height: 72px; touch-action: manipulation"
+              (click)="pressKey(key)"
+            >
+              @if (key === '←') { <i class="pi pi-delete-left"></i> }
+              @else { {{ key }} }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Boton buscar -->
+      <p-button
+        label="Buscar cliente"
+        icon="pi pi-search"
+        [loading]="searching()"
+        [disabled]="searchInput().length < 10"
+        styleClass="w-full"
+        size="large"
+        (onClick)="search()"
+      />
+
+      <!-- Carga masiva -->
+      <label class="p-button p-button-outlined p-button-secondary p-button-sm w-full cursor-pointer mt-2">
+        <i class="pi pi-upload mr-2"></i>Carga masiva (Excel/CSV)
+        <input type="file" accept=".xlsx,.csv" class="hidden" (change)="onClientFileUpload($event)" />
+      </label>
+    </div>
+  </div>
+}
+
+<!-- VISTA CLIENTE ENCONTRADO -->
+@if (view() === 'client') {
+  <div class="p-4" style="max-width: 800px; margin: 0 auto">
+
+    <div class="flex align-items-center gap-2 mb-4">
+      <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary" (onClick)="back()" />
+      <h2 class="m-0">Información del cliente</h2>
+    </div>
+
+    <!-- Tarjeta cliente -->
+    <div class="surface-card border-round-xl p-4 shadow-2 mb-4">
+      <div class="flex align-items-center gap-4">
+        <p-avatar
+          [label]="clientInitials()"
+          size="xlarge"
+          shape="circle"
+          styleClass="text-2xl font-bold bg-primary text-white"
+        />
+        <div class="flex-1">
+          <h3 class="m-0 text-2xl">{{ currentClient()?.name }} {{ currentClient()?.lastname }}</h3>
+          <p class="m-0 text-color-secondary mt-1">
+            <i class="pi pi-id-card mr-1"></i>{{ currentClient()?.identification }}
+          </p>
+          <p class="m-0 text-color-secondary">
+            <i class="pi pi-phone mr-1"></i>{{ currentClient()?.phone }}
+          </p>
+          <p class="m-0 text-color-secondary">
+            <i class="pi pi-envelope mr-1"></i>{{ currentClient()?.email }}
+          </p>
+        </div>
+        <p-tag
+          [value]="currentClient()?.active ? 'Activo' : 'Inactivo'"
+          [severity]="currentClient()?.active ? 'success' : 'danger'"
+        />
+      </div>
+
+      <!-- Botones de accion grandes -->
+      <p-divider />
+      <div class="flex gap-3 flex-wrap">
+        <p-button label="Editar datos" icon="pi pi-pencil" severity="secondary" size="large" (onClick)="openEdit()" />
+        <p-button
+          [label]="currentClient()?.active ? 'Desactivar' : 'Activar'"
+          [icon]="currentClient()?.active ? 'pi pi-ban' : 'pi pi-check-circle'"
+          [severity]="currentClient()?.active ? 'warn' : 'success'"
+          size="large"
+          (onClick)="toggleStatus()"
+        />
+      </div>
+    </div>
+
+    <!-- Contratos -->
+    <div class="surface-card border-round-xl p-4 shadow-2">
+      <div class="flex align-items-center justify-content-between mb-3">
+        <h3 class="m-0">Contratos</h3>
+        @if (activeContract()) {
+          <p-tag value="Contrato vigente" severity="success" />
+        } @else {
+          <p-tag value="Sin contrato activo" severity="secondary" />
+        }
+      </div>
+
+      @if (contracts().length === 0) {
+        <div class="text-center py-4 text-color-secondary">
+          <i class="pi pi-file-o" style="font-size: 2rem"></i>
+          <p>No tiene contratos registrados.</p>
+        </div>
+      } @else {
+        <div class="flex flex-column gap-2">
+          @for (c of contracts(); track c.contractId) {
+            <div class="flex align-items-center justify-content-between p-3 border-round-lg surface-ground">
+              <div>
+                <span class="font-medium">{{ c.serviceName }}</span>
+                <p class="m-0 text-color-secondary text-sm">{{ c.methodPaymentName }} · Vence {{ c.endDate | date:'dd/MM/yyyy' }}</p>
+              </div>
+              <p-tag [value]="c.statusDescription" [severity]="getStatusSeverity(c.statusCode)" />
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- VISTA NUEVO CLIENTE -->
+@if (view() === 'new-client') {
+  <div class="p-4" style="max-width: 600px; margin: 0 auto">
+
+    <div class="flex align-items-center gap-2 mb-4">
+      <p-button icon="pi pi-arrow-left" [text]="true" severity="secondary" (onClick)="back()" />
+      <h2 class="m-0">Registrar nuevo cliente</h2>
+    </div>
+
+    <div class="surface-card border-round-xl p-4 shadow-2 mb-3">
+      <div class="flex align-items-center gap-2 mb-3">
+        <i class="pi pi-id-card text-primary"></i>
+        <span class="font-medium text-lg">Cédula: <strong>{{ searchInput() }}</strong></span>
+      </div>
+    </div>
+
+    <p-card>
+      <form [formGroup]="newClientForm" class="grid">
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Nombre <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="name" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Apellido <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="lastname" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Teléfono <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="phone" placeholder="09XXXXXXXX" class="w-full p-inputtext-lg" />
+          @if (newClientForm.controls.phone.invalid && newClientForm.controls.phone.touched) {
+            <small class="text-red-500">Formato: 09XXXXXXXX (mínimo 10 dígitos)</small>
+          }
+        </div>
+        <div class="col-6 flex flex-column gap-2">
+          <label class="font-medium">Correo <span class="text-red-500">*</span></label>
+          <input pInputText type="email" formControlName="email" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-12 flex flex-column gap-2">
+          <label class="font-medium">Dirección <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="address" placeholder="Mínimo 20 caracteres" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-12 flex flex-column gap-2">
+          <label class="font-medium">Referencia <span class="text-red-500">*</span></label>
+          <input pInputText formControlName="referenceAddress" placeholder="Mínimo 20 caracteres" class="w-full p-inputtext-lg" />
+        </div>
+        <div class="col-12 flex gap-3 mt-2">
+          <p-button label="Cancelar" severity="secondary" size="large" [text]="true" (onClick)="back()" styleClass="flex-1" />
+          <p-button
+            label="Registrar cliente"
+            icon="pi pi-user-plus"
+            size="large"
+            [loading]="saving()"
+            [disabled]="newClientForm.invalid"
+            (onClick)="saveNewClient()"
+            styleClass="flex-1"
+          />
+        </div>
+      </form>
+    </p-card>
+  </div>
+}
+
+<!-- Dialog edicion -->
+<p-dialog [visible]="showEditDialog()" header="Editar cliente" [modal]="true" [style]="{ width: '540px' }" (onHide)="showEditDialog.set(false)">
+  <form [formGroup]="editForm" class="grid pt-2">
+    <div class="col-6 flex flex-column gap-2">
+      <label class="font-medium">Nombre *</label>
+      <input pInputText formControlName="name" class="w-full p-inputtext-lg" />
+    </div>
+    <div class="col-6 flex flex-column gap-2">
+      <label class="font-medium">Apellido *</label>
+      <input pInputText formControlName="lastname" class="w-full p-inputtext-lg" />
+    </div>
+    <div class="col-6 flex flex-column gap-2">
+      <label class="font-medium">Teléfono *</label>
+      <input pInputText formControlName="phone" class="w-full p-inputtext-lg" />
+    </div>
+    <div class="col-6 flex flex-column gap-2">
+      <label class="font-medium">Correo *</label>
+      <input pInputText type="email" formControlName="email" class="w-full p-inputtext-lg" />
+    </div>
+    <div class="col-12 flex flex-column gap-2">
+      <label class="font-medium">Dirección *</label>
+      <input pInputText formControlName="address" class="w-full p-inputtext-lg" />
+    </div>
+    <div class="col-12 flex flex-column gap-2">
+      <label class="font-medium">Referencia *</label>
+      <input pInputText formControlName="referenceAddress" class="w-full p-inputtext-lg" />
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="showEditDialog.set(false)" />
+    <p-button label="Guardar cambios" icon="pi pi-save" size="large" [loading]="saving()" [disabled]="editForm.invalid" (onClick)="saveEdit()" />
+  </ng-template>
+</p-dialog>

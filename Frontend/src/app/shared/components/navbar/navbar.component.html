@@ -1,0 +1,19 @@
+<p-menubar [model]="menuItems()">
+  <ng-template pTemplate="start">
+    <span class="font-bold text-lg mr-4">Viamatica</span>
+  </ng-template>
+  <ng-template pTemplate="end">
+    <div class="flex align-items-center gap-2">
+      <p-avatar [label]="username().charAt(0).toUpperCase()" shape="circle" />
+      <span class="font-medium">{{ username() }}</span>
+      <small class="text-color-secondary">({{ rolName() }})</small>
+      <p-button
+        icon="pi pi-sign-out"
+        [text]="true"
+        severity="secondary"
+        (onClick)="logout()"
+        pTooltip="Cerrar sesión"
+      />
+    </div>
+  </ng-template>
+</p-menubar>

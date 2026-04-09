@@ -1,0 +1,11 @@
+namespace ViamaticaApi.Application.DTOs.Clients;
+
+public class UpdateClientDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Lastname { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phonenumber { get; set; } = string.Empty;
+    public string Address { get; set; } = string.Empty;
+    public string Referenceaddress { get; set; } = string.Empty;
+}

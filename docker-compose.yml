@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-viamatica_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-viamatica_pass}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro

@@ -1,0 +1,83 @@
+<app-navbar />
+
+<div class="p-4">
+  <div class="mb-4">
+    <h1 class="text-3xl font-bold m-0">Bienvenido, {{ username() }}</h1>
+    <p class="text-color-secondary mt-1">Rol: {{ rolName() }}</p>
+  </div>
+
+  <div class="grid">
+    <div class="col-12 md:col-4">
+      <p-card header="Atenciones hoy">
+        @if (loading()) {
+          <i class="pi pi-spin pi-spinner"></i>
+        } @else {
+          <span class="text-5xl font-bold text-primary">{{ summary()?.total ?? 0 }}</span>
+          <p class="text-color-secondary mt-1">atenciones completadas</p>
+        }
+      </p-card>
+    </div>
+
+    <div class="col-12 md:col-8">
+      <p-card header="Acceso rápido">
+        <div class="flex flex-wrap gap-2">
+          @if (rolId() === 1) {
+            <a routerLink="/dashboard">
+              <p-button label="Dashboard" icon="pi pi-chart-bar" severity="secondary" />
+            </a>
+            <a routerLink="/admin/users">
+              <p-button label="Usuarios" icon="pi pi-users" severity="secondary" />
+            </a>
+            <a routerLink="/admin/cajas">
+              <p-button label="Cajas" icon="pi pi-building" severity="secondary" />
+            </a>
+          }
+          @if (rolId() === 2) {
+            <a routerLink="/gestor/turnos">
+              <p-button label="Asignar Turno" icon="pi pi-ticket" severity="secondary" />
+            </a>
+          }
+          @if (rolId() === 3) {
+            <a routerLink="/cajero/atenciones">
+              <p-button label="Atenciones" icon="pi pi-ticket" severity="secondary" />
+            </a>
+            <a routerLink="/cajero/clientes">
+              <p-button label="Clientes" icon="pi pi-user" severity="secondary" />
+            </a>
+            <a routerLink="/cajero/contratos">
+              <p-button label="Contratos" icon="pi pi-file" severity="secondary" />
+            </a>
+            <a routerLink="/cajero/pagos">
+              <p-button label="Pagos" icon="pi pi-credit-card" severity="secondary" />
+            </a>
+          }
+        </div>
+      </p-card>
+    </div>
+  </div>
+
+  @if (rolId() === 2 && pendingUsers().length > 0) {
+    <div class="grid mt-4">
+      <div class="col-12">
+        <p-card header="Usuarios pendientes de aprobación">
+          <p-table [value]="pendingUsers()" [tableStyle]="{ 'min-width': '40rem' }">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Usuario</th>
+                <th>Rol</th>
+                <th>Fecha de creación</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-user>
+              <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.rolName }}</td>
+                <td>{{ user.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </p-card>
+      </div>
+    </div>
+  }
+</div>

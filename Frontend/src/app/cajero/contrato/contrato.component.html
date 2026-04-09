@@ -1,0 +1,101 @@
+<app-navbar />
+<p-toast />
+<p-confirmDialog />
+
+<div class="p-4">
+  <div class="flex align-items-center justify-content-between mb-4">
+    <h2 class="m-0">Contratos</h2>
+    <p-button label="Nuevo contrato" icon="pi pi-plus" (onClick)="showCreate.set(true)" />
+  </div>
+
+  <p-table [value]="contracts()" [loading]="loading()" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>#</th><th>Cliente</th><th>Servicio</th><th>Método pago</th><th>Estado</th><th>Inicio</th><th>Fin</th><th>Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-c>
+      <tr>
+        <td>{{ c.contractId }}</td>
+        <td>{{ c.clientName }}</td>
+        <td>{{ c.serviceName }}</td>
+        <td>{{ c.methodPaymentName }}</td>
+        <td><p-tag [value]="c.statusDescription" [severity]="getStatusSeverity(c.statusCode)" /></td>
+        <td>{{ c.startDate | date:'dd/MM/yyyy' }}</td>
+        <td>{{ c.endDate | date:'dd/MM/yyyy' }}</td>
+        <td>
+          <div class="flex gap-1">
+            @if (c.statusCode === 'VIG') {
+              <p-button icon="pi pi-sync" [text]="true" severity="info" (onClick)="openChangeService(c)" pTooltip="Cambiar servicio" />
+              <p-button icon="pi pi-credit-card" [text]="true" severity="secondary" (onClick)="openChangePayment(c)" pTooltip="Cambiar método de pago" />
+              <p-button icon="pi pi-times" [text]="true" severity="danger" (onClick)="cancelContract(c)" pTooltip="Cancelar contrato" />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="8" class="text-center py-4">No hay contratos registrados.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Dialog crear contrato -->
+<p-dialog [visible]="showCreate()" header="Nuevo contrato" [modal]="true" [style]="{ width: '480px' }" (onHide)="showCreate.set(false)">
+  <form [formGroup]="createForm" class="flex flex-column gap-3 pt-2">
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Cliente *</label>
+      <p-select formControlName="clientId" [options]="clients()" optionLabel="name" optionValue="clientId" [filter]="true" filterBy="name,identification" placeholder="Buscar cliente..." styleClass="w-full" appendTo="body" />
+    </div>
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Servicio *</label>
+      <p-select formControlName="serviceId" [options]="services()" optionLabel="serviceName" optionValue="serviceId" placeholder="Seleccionar servicio" styleClass="w-full" appendTo="body" />
+    </div>
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Método de pago *</label>
+      <p-select formControlName="methodPaymentId" [options]="methodPayments()" optionLabel="description" optionValue="id" placeholder="Seleccionar método" styleClass="w-full" appendTo="body" />
+    </div>
+    <div class="grid">
+      <div class="col-6 flex flex-column gap-1">
+        <label class="font-medium">Fecha inicio *</label>
+        <p-datepicker formControlName="startDate" dateFormat="dd/mm/yy" styleClass="w-full" appendTo="body" />
+      </div>
+      <div class="col-6 flex flex-column gap-1">
+        <label class="font-medium">Fecha fin *</label>
+        <p-datepicker formControlName="endDate" dateFormat="dd/mm/yy" styleClass="w-full" appendTo="body" />
+      </div>
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="showCreate.set(false)" />
+    <p-button label="Crear" icon="pi pi-save" [loading]="saving()" [disabled]="createForm.invalid" (onClick)="create()" />
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog cambiar servicio -->
+<p-dialog [visible]="showChangeService()" header="Cambiar servicio" [modal]="true" [style]="{ width: '380px' }" (onHide)="showChangeService.set(false)">
+  <form [formGroup]="changeServiceForm" class="flex flex-column gap-3 pt-2">
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Nuevo servicio *</label>
+      <p-select formControlName="newServiceId" [options]="services()" optionLabel="serviceName" optionValue="serviceId" placeholder="Seleccionar" styleClass="w-full" appendTo="body" />
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="showChangeService.set(false)" />
+    <p-button label="Confirmar" [loading]="saving()" [disabled]="changeServiceForm.invalid" (onClick)="submitChangeService()" />
+  </ng-template>
+</p-dialog>
+
+<!-- Dialog cambiar método de pago -->
+<p-dialog [visible]="showChangePayment()" header="Cambiar método de pago" [modal]="true" [style]="{ width: '380px' }" (onHide)="showChangePayment.set(false)">
+  <form [formGroup]="changePaymentForm" class="flex flex-column gap-3 pt-2">
+    <div class="flex flex-column gap-1">
+      <label class="font-medium">Método de pago *</label>
+      <p-select formControlName="methodPaymentId" [options]="methodPayments()" optionLabel="description" optionValue="id" placeholder="Seleccionar" styleClass="w-full" appendTo="body" />
+    </div>
+  </form>
+  <ng-template pTemplate="footer">
+    <p-button label="Cancelar" severity="secondary" [text]="true" (onClick)="showChangePayment.set(false)" />
+    <p-button label="Confirmar" [loading]="saving()" [disabled]="changePaymentForm.invalid" (onClick)="submitChangePayment()" />
+  </ng-template>
+</p-dialog>
