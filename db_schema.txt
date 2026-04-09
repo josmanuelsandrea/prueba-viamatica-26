@@ -1,0 +1,227 @@
+================================================================================
+  ESQUEMA DE BASE DE DATOS — VIAMATICA PRUEBA TÉCNICA
+  Motor: PostgreSQL 17
+  Convención: snake_case, PKs SERIAL, FKs con sufijo _id
+================================================================================
+
+--------------------------------------------------------------------------------
+MÓDULO: ROLES Y USUARIOS
+--------------------------------------------------------------------------------
+
+TABLE rol
+  rolid           SERIAL          PRIMARY KEY
+  rolname         VARCHAR(50)     NOT NULL
+  -- Valores semilla: Administrador, Gestor, Cajero, Cliente
+
+TABLE userstatus
+  statusid        VARCHAR(3)      PRIMARY KEY
+  description     VARCHAR(50)     NOT NULL
+  -- Valores semilla: ACT (Activo), INA (Inactivo), BLO (Bloqueado), PEN (Pendiente aprobación)
+
+TABLE "user"
+  userid          SERIAL          PRIMARY KEY
+  username        VARCHAR(20)     NOT NULL UNIQUE
+    -- Regla: 8-20 chars, letras + al menos 1 número, sin caracteres especiales
+  email           TEXT            NOT NULL        -- almacenado encriptado (AES)
+  password        TEXT            NOT NULL        -- almacenado encriptado (AES)
+  rol_rolid       INTEGER         NOT NULL        REFERENCES rol(rolid)
+  creationdate    TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  usercreate      INTEGER                         REFERENCES "user"(userid)   -- quién lo creó
+  userapproval    INTEGER                         REFERENCES "user"(userid)   -- quién lo aprobó
+  dateapproval    TIMESTAMPTZ
+  userstatus_statusid VARCHAR(3)  NOT NULL        REFERENCES userstatus(statusid)
+  active          BOOLEAN         NOT NULL        DEFAULT TRUE
+  deleted_at      TIMESTAMPTZ
+    -- Regla: Si rol = Gestor crea usuario → userstatus = PEN hasta que Admin apruebe
+    -- Regla: Si rol = Admin crea usuario → userstatus = ACT directamente
+
+--------------------------------------------------------------------------------
+MÓDULO: CAJAS
+--------------------------------------------------------------------------------
+
+TABLE cash
+  cashid          SERIAL          PRIMARY KEY
+  cashdescription VARCHAR(50)     NOT NULL
+  active          BOOLEAN         NOT NULL        DEFAULT TRUE
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  updated_at      TIMESTAMPTZ
+  deleted_at      TIMESTAMPTZ
+
+TABLE usercash
+  user_userid     INTEGER         NOT NULL        REFERENCES "user"(userid)
+  cash_cashid     INTEGER         NOT NULL        REFERENCES cash(cashid)
+  is_active       BOOLEAN         NOT NULL        DEFAULT FALSE
+    -- Regla: máximo 2 usuarios por caja (CHECK en app layer)
+    -- Regla: solo 1 de los 2 puede tener is_active = TRUE al mismo tiempo
+  assigned_at     TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  PRIMARY KEY (user_userid, cash_cashid)
+
+--------------------------------------------------------------------------------
+MÓDULO: TURNOS Y ATENCIÓN
+--------------------------------------------------------------------------------
+
+TABLE attentiontype
+  attentiontypeid VARCHAR(3)      PRIMARY KEY
+  description     VARCHAR(100)    NOT NULL
+  prefix          VARCHAR(2)      NOT NULL UNIQUE
+  -- Valores semilla:
+  --   AC  | Atención al cliente   | AC
+  --   PS  | Pago de servicio      | PS
+  --   CS  | Cambio de servicio    | CS
+  --   CP  | Cambio de forma pago  | CP
+  --   CC  | Cancelación contrato  | CC
+
+TABLE attentionstatus
+  statusid        SERIAL          PRIMARY KEY
+  description     VARCHAR(30)     NOT NULL
+  -- Valores semilla: PEN (Pendiente), ATN (Atendido), CAN (Cancelado)
+
+TABLE turn
+  turnid          SERIAL          PRIMARY KEY
+  description     VARCHAR(6)      NOT NULL
+    -- Formato: 2 letras mayúsculas + 4 dígitos (ej: AC0001)
+    -- Se auto-genera según attentiontype.prefix + secuencia por caja por día
+  date            TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  cash_cashid     INTEGER         NOT NULL        REFERENCES cash(cashid)
+  usergestorid    INTEGER         NOT NULL        REFERENCES "user"(userid)
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+
+TABLE attention
+  attentionid     SERIAL          PRIMARY KEY
+  turn_turnid     INTEGER         NOT NULL        REFERENCES turn(turnid)
+  client_clientid INTEGER                         REFERENCES client(clientid)
+    -- Nullable: el turno puede crearse antes de identificar al cliente
+  attentiontype_attentiontypeid VARCHAR(3) NOT NULL REFERENCES attentiontype(attentiontypeid)
+  attentionstatus_statusid INTEGER NOT NULL        REFERENCES attentionstatus(statusid)
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  updated_at      TIMESTAMPTZ
+
+--------------------------------------------------------------------------------
+MÓDULO: CLIENTES
+--------------------------------------------------------------------------------
+
+TABLE client
+  clientid        SERIAL          PRIMARY KEY
+  name            VARCHAR(50)     NOT NULL
+  lastname        VARCHAR(50)     NOT NULL
+  identification  VARCHAR(13)     NOT NULL UNIQUE
+    -- Regla: 10-13 dígitos numéricos, único en el sistema
+  email           VARCHAR(120)    NOT NULL
+  phonenumber     VARCHAR(13)     NOT NULL
+    -- Regla: mínimo 10 dígitos, solo números, empieza con 09
+  address         VARCHAR(100)    NOT NULL
+    -- Regla: 20-100 caracteres
+  referenceaddress VARCHAR(100)   NOT NULL
+    -- Regla: 20-100 caracteres
+  active          BOOLEAN         NOT NULL        DEFAULT TRUE
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  updated_at      TIMESTAMPTZ
+  deleted_at      TIMESTAMPTZ
+
+--------------------------------------------------------------------------------
+MÓDULO: SERVICIOS Y EQUIPOS
+--------------------------------------------------------------------------------
+
+TABLE service
+  serviceid       SERIAL          PRIMARY KEY
+  servicename     VARCHAR(100)    NOT NULL
+  servicedescription VARCHAR(150) NOT NULL
+  speed_mbps      INTEGER         NOT NULL
+  price           DECIMAL(10,2)   NOT NULL
+  active          BOOLEAN         NOT NULL        DEFAULT TRUE
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  updated_at      TIMESTAMPTZ
+  deleted_at      TIMESTAMPTZ
+
+TABLE device
+  deviceid        SERIAL          PRIMARY KEY
+  devicename      VARCHAR(50)     NOT NULL
+  service_serviceid INTEGER       NOT NULL        REFERENCES service(serviceid)
+    -- Un servicio puede tener múltiples equipos asociados
+  active          BOOLEAN         NOT NULL        DEFAULT TRUE
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  updated_at      TIMESTAMPTZ
+  deleted_at      TIMESTAMPTZ
+
+--------------------------------------------------------------------------------
+MÓDULO: CONTRATOS
+--------------------------------------------------------------------------------
+
+TABLE statuscontract
+  statusid        VARCHAR(3)      PRIMARY KEY
+  description     VARCHAR(50)     NOT NULL
+  -- Valores semilla:
+  --   VIG | Vigente
+  --   SUS | Sustituido    (servicio cambiado, contrato reemplazado)
+  --   REN | Renovado      (nuevo contrato creado por cambio de servicio)
+  --   CAN | Cancelado
+
+TABLE methodpayment
+  methodpaymentid SERIAL          PRIMARY KEY
+  description     VARCHAR(50)     NOT NULL
+  -- Valores semilla: Efectivo, Tarjeta de crédito, Transferencia bancaria, Débito automático
+
+TABLE contract
+  contractid      SERIAL          PRIMARY KEY
+  startdate       TIMESTAMPTZ     NOT NULL
+  enddate         TIMESTAMPTZ
+  service_serviceid INTEGER       NOT NULL        REFERENCES service(serviceid)
+  statuscontract_statusid VARCHAR(3) NOT NULL     REFERENCES statuscontract(statusid)
+  client_clientid INTEGER         NOT NULL        REFERENCES client(clientid)
+  methodpayment_methodpaymentid INTEGER NOT NULL  REFERENCES methodpayment(methodpaymentid)
+  attention_attentionid INTEGER                   REFERENCES attention(attentionid)
+    -- Atención que originó o modificó el contrato
+  parent_contractid INTEGER                       REFERENCES contract(contractid)
+    -- Apunta al contrato anterior cuando statusid = REN (para trazabilidad)
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  updated_at      TIMESTAMPTZ
+  deleted_at      TIMESTAMPTZ
+
+  -- FLUJO DE ESTADOS:
+  -- Cambio de servicio: contrato actual → SUS
+  --                     contrato nuevo  → REN, enddate = enddate del anterior
+  -- Cancelación:        contrato actual → CAN, enddate = NOW()
+  -- Cambio de pago:     UPDATE methodpayment_methodpaymentid (mismo contrato)
+
+--------------------------------------------------------------------------------
+MÓDULO: PAGOS
+--------------------------------------------------------------------------------
+
+TABLE payments
+  paymentid       SERIAL          PRIMARY KEY
+  paydate         TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  amount          DECIMAL(10,2)   NOT NULL
+  client_clientid INTEGER         NOT NULL        REFERENCES client(clientid)
+  contract_contractid INTEGER     NOT NULL        REFERENCES contract(contractid)
+  methodpayment_methodpaymentid INTEGER NOT NULL  REFERENCES methodpayment(methodpaymentid)
+  attention_attentionid INTEGER                   REFERENCES attention(attentionid)
+  active          BOOLEAN         NOT NULL        DEFAULT TRUE
+  created_at      TIMESTAMPTZ     NOT NULL        DEFAULT NOW()
+  updated_at      TIMESTAMPTZ
+
+================================================================================
+STORED PROCEDURE (requerido por la prueba — al menos 1)
+================================================================================
+
+sp_generate_turn_description(p_cash_cashid INT, p_attentiontype_id VARCHAR)
+  -- Genera la descripción del turno: prefijo de attentiontype + secuencia diaria por caja
+  -- Ejemplo: si prefix = 'AC' y ya existen 3 turnos AC hoy en esa caja → devuelve 'AC0004'
+  RETURNS VARCHAR(6)
+
+================================================================================
+NOTAS DE IMPLEMENTACIÓN
+================================================================================
+
+1. Eliminaciones lógicas: usar deleted_at (TIMESTAMPTZ). Nunca DELETE físico.
+   EF Core: filtros globales con HasQueryFilter(e => e.deleted_at == null).
+
+2. Encriptación: email y password de "user" se encriptan con AES-256 antes de persistir.
+   El campo identification de client NO se encripta (se usa para búsqueda por índice).
+
+3. usercash.is_active: al activar un cajero en una caja, verificar que ningún otro
+   usuario de esa caja tenga is_active = TRUE antes de hacer el UPDATE.
+
+4. Secuencia de turnos: el SP sp_generate_turn_description maneja la secuencia diaria
+   por caja y tipo de atención (reinicia cada día a 0001).
+
+================================================================================

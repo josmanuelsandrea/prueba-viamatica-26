@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:17
+    container_name: viamatica_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-viamatica}
+      POSTGRES_USER: ${POSTGRES_USER:-viamatica_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-viamatica_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    networks:
+      - viamatica_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-viamatica_user} -d ${POSTGRES_DB:-viamatica}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: viamatica_backend
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-viamatica};Username=${POSTGRES_USER:-viamatica_user};Password=${POSTGRES_PASSWORD:-viamatica_pass}"
+      Jwt__Key: ${JWT_KEY:-SuperSecretKey32CharactersMinimum!}
+      Jwt__Issuer: ${JWT_ISSUER:-ViamaticaApi}
+      Jwt__Audience: ${JWT_AUDIENCE:-ViamaticaClient}
+      Encryption__Key: ${ENCRYPTION_KEY:-AES256Key32BytesLongExactly!!!}
+    ports:
+      - "5000:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - viamatica_net
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: viamatica_frontend
+    restart: unless-stopped
+    environment:
+      API_URL: http://backend:8080
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - viamatica_net
+
+volumes:
+  postgres_data:
+
+networks:
+  viamatica_net:
+    driver: bridge
