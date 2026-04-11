@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using ViamaticaApi.Api.Extensions;
+using ViamaticaApi.Api.Middlewares;
 using ViamaticaApi.Infrastructure.Data;
 
 Log.Logger = new LoggerConfiguration()
@@ -30,6 +31,7 @@ try
     builder.Services.AddJwtAuthentication(builder.Configuration);
     builder.Services.AddSwaggerWithJwt();
     builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddRedis(builder.Configuration);
 
     builder.Services.AddCors(options =>
     {
@@ -71,7 +73,7 @@ try
                 if (user != null && user.Password == "PENDING_ENCRYPTION")
                 {
                     user.Password = encryption.Encrypt(seed.Password);
-                    user.Email    = encryption.Encrypt(seed.Email);
+                    user.Email = encryption.Encrypt(seed.Email);
                     Log.Information("Credenciales del usuario {Username} configuradas correctamente.", seed.Username);
                 }
             }
@@ -96,6 +98,15 @@ try
     app.UseCors("AllowFrontend");
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseWhen
+    (ctx =>
+        ctx.Request.Path.StartsWithSegments("/api/auth") ||
+        ctx.Request.Path.StartsWithSegments("/api/contracts") ||
+        ctx.Request.Path.StartsWithSegments("/api/payments"),
+    appBuilder =>
+    {
+        appBuilder.UseMiddleware<AuditMiddleware>();
+    });
     app.MapControllers();
 
     app.Lifetime.ApplicationStarted.Register(() =>

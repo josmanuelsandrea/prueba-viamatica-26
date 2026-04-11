@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StackExchange.Redis;
 using ViamaticaApi.Application.Interfaces;
 using ViamaticaApi.Infrastructure.Data;
 using ViamaticaApi.Infrastructure.Services;
@@ -25,6 +26,8 @@ public static class ServiceExtensions
         services.AddScoped<IContractService, ContractService>();
         services.AddScoped<IPaymentService, PaymentService>();
         services.AddScoped<IKioskService, KioskService>();
+        services.AddScoped<IReportService, ReportService>();
+        services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
         return services;
     }
 
@@ -32,6 +35,14 @@ public static class ServiceExtensions
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+        return services;
+    }
+
+    public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connection = ConnectionMultiplexer.Connect(configuration["Redis:ConnectionString"]);
+        services.AddSingleton<IConnectionMultiplexer>(connection);
 
         return services;
     }

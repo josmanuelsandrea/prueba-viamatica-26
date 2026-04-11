@@ -56,4 +56,22 @@ public class AuthController : ControllerBase
         var menu = _authService.GetMenuByRole(rolId);
         return Ok(menu);
     }
+
+    [HttpPost("refresh-token")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
+    {
+
+        try
+        {
+            var result = await _authService.RefreshTokenAsync(request.RefreshToken);
+            if (result == null)
+                return Unauthorized(new { message = "Token inválido o expirado." });
+
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
+    }
 }

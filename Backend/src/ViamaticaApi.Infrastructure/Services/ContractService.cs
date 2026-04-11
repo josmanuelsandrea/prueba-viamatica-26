@@ -80,13 +80,21 @@ public class ContractService : IContractService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Contracts.Add(contract);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Contracts.Add(contract);
+            await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Contrato {ContractId} creado para cliente {ClientId} con servicio {ServiceId}",
-            contract.Contractid, dto.ClientId, dto.ServiceId);
+            _logger.LogInformation("Contrato {ContractId} creado para cliente {ClientId} con servicio {ServiceId}",
+                contract.Contractid, dto.ClientId, dto.ServiceId);
 
-        return await GetByIdAsync(contract.Contractid);
+            return await GetByIdAsync(contract.Contractid);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al crear contrato para cliente {ClientId} con servicio {ServiceId}", dto.ClientId, dto.ServiceId);
+            throw;
+        }
     }
 
     public async Task<ContractResponseDto> ChangeServiceAsync(int contractId, ChangeServiceDto dto)
@@ -117,13 +125,20 @@ public class ContractService : IContractService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Contracts.Add(newContract);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Contracts.Add(newContract);
+            await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Contrato {OldContractId} sustituido. Nuevo contrato {NewContractId} con servicio {ServiceId}",
-            contractId, newContract.Contractid, dto.NewServiceId);
+            _logger.LogInformation("Contrato {OldContractId} sustituido. Nuevo contrato {NewContractId} con servicio {ServiceId}",
+                contractId, newContract.Contractid, dto.NewServiceId);
 
-        return await GetByIdAsync(newContract.Contractid);
+            return await GetByIdAsync(newContract.Contractid);
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al cambiar servicio del contrato {ContractId} a servicio {ServiceId}", contractId, dto.NewServiceId);
+            throw;
+        }
     }
 
     public async Task<ContractResponseDto> ChangePaymentMethodAsync(int contractId, ChangePaymentMethodDto dto)
@@ -140,12 +155,19 @@ public class ContractService : IContractService
         contract.MethodpaymentMethodpaymentid = dto.MethodPaymentId;
         contract.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Método de pago del contrato {ContractId} actualizado a {MethodPaymentId}",
-            contractId, dto.MethodPaymentId);
+            _logger.LogInformation("Método de pago del contrato {ContractId} actualizado a {MethodPaymentId}",
+                contractId, dto.MethodPaymentId);
 
-        return await GetByIdAsync(contractId);
+            return await GetByIdAsync(contractId);
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al cambiar método de pago del contrato {ContractId} a {MethodPaymentId}", contractId, dto.MethodPaymentId);
+            throw;
+        }
     }
 
     public async Task<ContractResponseDto> CancelAsync(int contractId)
@@ -160,11 +182,18 @@ public class ContractService : IContractService
         contract.Enddate = DateTime.UtcNow;
         contract.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Contrato {ContractId} cancelado", contractId);
+            _logger.LogInformation("Contrato {ContractId} cancelado", contractId);
 
-        return await GetByIdAsync(contractId);
+            return await GetByIdAsync(contractId);
+        } catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al cancelar contrato {ContractId}", contractId);
+            throw;
+        }
     }
 
     private async Task<Contract?> LoadContractAsync(int contractId)

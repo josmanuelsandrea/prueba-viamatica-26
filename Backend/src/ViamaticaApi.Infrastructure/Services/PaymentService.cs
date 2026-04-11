@@ -65,13 +65,18 @@ public class PaymentService : IPaymentService
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Payments.Add(payment);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Pago {PaymentId} de {Amount} registrado para contrato {ContractId}",
-            payment.Paymentid, dto.Amount, dto.ContractId);
-
-        return await GetByIdAsync(payment.Paymentid);
+        try
+        {
+            _context.Payments.Add(payment);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Pago {PaymentId} creado exitosamente para contrato {ContractId}", payment.Paymentid, dto.ContractId);
+            return await GetByIdAsync(payment.Paymentid);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al crear el pago para contrato {ContractId}", dto.ContractId);
+            throw;
+        }
     }
 
     private async Task<Payment?> LoadPaymentAsync(int paymentId)

@@ -15,6 +15,11 @@
       "key": "token",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -31,6 +36,9 @@
                   "var json = pm.response.json();",
                   "if (json.token) {",
                   "  pm.collectionVariables.set('token', json.token);",
+                  "}",
+                  "if (json.refreshToken) {",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -96,6 +104,39 @@
               "raw": "{{baseUrl}}/api/auth/recover-password",
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "recover-password"]
+            }
+          }
+        },
+        {
+          "name": "Renovar token (Refresh)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.token) {",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "}",
+                  "if (json.refreshToken) {",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh-token"]
             }
           }
         },
@@ -1066,6 +1107,35 @@
               "raw": "{{baseUrl}}/api/kiosk/request-turn",
               "host": ["{{baseUrl}}"],
               "path": ["api", "kiosk", "request-turn"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reportes",
+      "item": [
+        {
+          "name": "Clientes con contratos vigentes (con token)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/clientes-contratos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "clientes-contratos"]
+            }
+          }
+        },
+        {
+          "name": "Clientes con contratos vigentes (sin token — debe retornar 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/clientes-contratos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "clientes-contratos"]
             }
           }
         }

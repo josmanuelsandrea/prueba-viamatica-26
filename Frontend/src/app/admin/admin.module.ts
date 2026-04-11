@@ -5,6 +5,7 @@ import { AdminRoutingModule } from './admin-routing.module';
 import { UserListComponent } from './user-list/user-list.component';
 import { UserFormComponent } from './user-form/user-form.component';
 import { CashListComponent } from './cash-list/cash-list.component';
+import { ReportsComponent } from './reports/reports.component';
 import { SharedModule } from '../shared/shared.module';
 
 import { TableModule } from 'primeng/table';
@@ -20,7 +21,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
-  declarations: [UserListComponent, UserFormComponent, CashListComponent],
+  declarations: [UserListComponent, UserFormComponent, CashListComponent, ReportsComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

@@ -33,10 +33,13 @@ services:
       Jwt__Issuer: ${JWT_ISSUER:-ViamaticaApi}
       Jwt__Audience: ${JWT_AUDIENCE:-ViamaticaClient}
       Encryption__Key: ${ENCRYPTION_KEY:-AES256Key32BytesLongExactly!!!}
+      Redis__ConnectionString: ${REDIS_CONNECTION_STRING:-redis:6379}
     ports:
       - "5000:8080"
     depends_on:
       db:
+        condition: service_healthy
+      redis:  
         condition: service_healthy
     networks:
       - viamatica_net
@@ -55,6 +58,18 @@ services:
       - backend
     networks:
       - viamatica_net
+  redis:
+    image: redis:7-alpine
+    container_name: viamatica_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - viamatica_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

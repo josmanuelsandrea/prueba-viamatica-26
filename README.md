@@ -7,7 +7,7 @@ Sistema de turnos y caja registradora para un proveedor de servicios de internet
 ## Requisitos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
-- Puertos **4200**, **5000** y **5433** disponibles en tu máquina
+- Puertos **4200**, **5000**, **5433** y **6379** disponibles en tu máquina
 
 ---
 
@@ -27,6 +27,7 @@ Una vez que todo esté corriendo:
 | Backend    | http://localhost:5000        |
 | Swagger    | http://localhost:5000/swagger |
 | Kiosk      | http://localhost:4200/kiosk  |
+| Redis      | localhost:6379               |
 
 ---
 
@@ -74,6 +75,7 @@ POSTGRES_USER=viamatica_user
 POSTGRES_PASSWORD=viamatica_pass
 JWT_KEY=SuperSecretKey32CharactersMinimum!
 ENCRYPTION_KEY=AES256Key32BytesLongExactly!!!
+REDIS_CONNECTION_STRING=redis:6379
 ```
 
 ---

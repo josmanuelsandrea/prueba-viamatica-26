@@ -17,17 +17,20 @@ public class AuthService : IAuthService
     private readonly IEncryptionService _encryption;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthService> _logger;
+    private readonly IRefreshTokenService _refreshTokenService;
 
     public AuthService(
         AppDbContext context,
         IEncryptionService encryption,
         IConfiguration configuration,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IRefreshTokenService refreshTokenService)
     {
         _context = context;
         _encryption = encryption;
         _configuration = configuration;
         _logger = logger;
+        _refreshTokenService = refreshTokenService;
     }
 
     public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
@@ -56,6 +59,7 @@ public class AuthService : IAuthService
         }
 
         var token = GenerateJwtToken(user.Userid, user.Username, user.Rol.Rolname, user.RolRolid);
+        var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Userid);
         var expiration = DateTime.UtcNow.AddHours(_configuration.GetValue<int>("Jwt:ExpirationHours", 8));
 
         _logger.LogInformation("Login exitoso para usuario {Username} con rol {Rol}", user.Username, user.Rol.Rolname);
@@ -63,12 +67,47 @@ public class AuthService : IAuthService
         return new LoginResponseDto
         {
             Token = token,
+            RefreshToken = refreshToken.Token,
+            RefreshTokenExpiration = refreshToken.Expires,
             Expiration = expiration,
             UserId = user.Userid,
             Username = user.Username,
             RolName = user.Rol.Rolname,
             RolId = user.RolRolid,
             Menu = GetMenuByRole(user.RolRolid)
+        };
+    }
+
+    public async Task<RefreshTokenResponseDto> RefreshTokenAsync(string refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            throw new UnauthorizedAccessException("Refresh token inválido.");
+
+        int userId = await _refreshTokenService.ValidateRefreshToken(refreshToken);
+        var user = await _context.Users
+            .Include(u => u.Rol)
+            .FirstOrDefaultAsync(u => u.Userid == userId && u.Active);
+
+        if (user == null)
+        {
+            _logger.LogWarning("Refresh token: usuario {UserId} no encontrado", userId);
+            throw new UnauthorizedAccessException("Usuario inválido.");
+        }
+
+        var refreshResult = await _refreshTokenService.RefreshTokenAsync(refreshToken);
+        if (refreshResult == null)
+            throw new UnauthorizedAccessException("Refresh token inválido o expirado.");        
+
+        var jwt = GenerateJwtToken(user.Userid, user.Username, user.Rol.Rolname, user.RolRolid);
+        var expiration = DateTime.UtcNow.AddHours(_configuration.GetValue<int>("Jwt:ExpirationHours", 8));
+
+        _logger.LogInformation("Refresh token exitoso para usuario {Username}", user.Username);
+
+        return new RefreshTokenResponseDto
+        {
+            Token = jwt,
+            RefreshToken = refreshResult.Value.RefreshToken,
+            RefreshTokenExpiration = refreshResult.Value.RefreshTokenExpires
         };
     }
 
@@ -100,6 +139,7 @@ public class AuthService : IAuthService
                 new MenuItemDto { Label = "Dashboard", Route = "/dashboard", Icon = "pi pi-chart-bar" },
                 new MenuItemDto { Label = "Usuarios", Route = "/admin/users", Icon = "pi pi-users" },
                 new MenuItemDto { Label = "Cajas", Route = "/admin/cajas", Icon = "pi pi-building" },
+                new MenuItemDto { Label = "Reportes", Route = "/admin/reportes", Icon = "pi pi-chart-line" },
             ],
             2 => // Gestor
             [
